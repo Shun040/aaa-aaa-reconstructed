@@ -80,8 +80,8 @@ The analysis scripts expect `analysis/audio.wav`, extracted from the archive fil
 
 ## 版权 / Copyright and credits
 
-- **本作品** © 2026 尹紫涔 Yin Zicen。作品的观念、文字、视觉构成与影像版本保留所有权利；本仓库中由作者编写的代码以 MIT 许可发布。详见 [LICENSE](LICENSE)。
-  **This work** © 2026 尹紫涔 Yin Zicen. The concept, texts, visual composition and video versions are all rights reserved; code written by the author in this repository is released under the MIT License. See [LICENSE](LICENSE).
+- **本作品** © 2026 尹紫涔 Yin Zicen。作品的观念、文字、视觉构成与影像版本保留所有权利；本仓库中由作者编写的代码以 MIT 许可发布。详见 [LICENSE](LICENSE) 与 [LICENSE-CODE.txt](LICENSE-CODE.txt)。
+  **This work** © 2026 尹紫涔 Yin Zicen. The concept, texts, visual composition and video versions are all rights reserved; code written by the author in this repository is released under the MIT License. See [LICENSE](LICENSE) and [LICENSE-CODE.txt](LICENSE-CODE.txt).
 - **原作**：Marina Abramović & Ulay, *AAA-AAA*, 1978. 录像由 R.T.B.F. 于列日拍摄制作。原作及其录像的权利归各自权利人所有。本仓库不包含原作录像或录音，仅包含从中分析得到的数据，以及艺术家文字说明的简短引用，用于研究与评论。
   **Original work**: Marina Abramović & Ulay, *AAA-AAA*, 1978. Video recorded and produced by R.T.B.F., Liège. All rights in the original work and its recording belong to their respective holders. This repository contains no part of the recording itself, only data derived from analysing it and a brief quotation of the artists' statement, for research and commentary.
 - **声音引擎与头部剖面渲染器**：[CHIMERA](https://github.com/jamesondh/chimera-vocal-synth)，© 2026 Jameson Hodge，MIT License（见 [CHIMERA-LICENSE.txt](CHIMERA-LICENSE.txt)）。
