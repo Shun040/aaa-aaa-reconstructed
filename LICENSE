@@ -1,0 +1,51 @@
+AAA-AAA（重建）/ AAA-AAA (Reconstructed)
+Copyright (c) 2026 尹紫涔 Yin Zicen
+
+This repository contains three kinds of material, under different terms.
+
+1. ARTWORK — ALL RIGHTS RESERVED
+
+The artwork "AAA-AAA（重建）/ AAA-AAA (Reconstructed)", including its concept,
+title, wall texts and other written texts, visual composition and interface
+design, captions, and all video and audio versions of the work, is
+Copyright (c) 2026 尹紫涔 Yin Zicen. All rights reserved.
+
+You may view and run the work for personal, educational and critical purposes.
+Exhibition, publication, redistribution or commercial use of the work, in whole
+or in part, requires the artist's written permission.
+
+2. CODE WRITTEN BY THE AUTHOR — MIT LICENSE
+
+The source code written by the author in this repository (index.html, core.js,
+driver.js, worklet.js, and the files in analysis/ and tools/), together with the
+data files score.json and intro_plan.json, is released under the MIT License:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+This licence does not extend to the artwork described in section 1, even where
+it is produced by running this code.
+
+3. THIRD-PARTY MATERIAL
+
+chimera.wasm and the files in heads/ are built, unmodified, from CHIMERA by
+Jameson Hodge and are distributed under its own MIT License (CHIMERA-LICENSE.txt).
+
+The original performance "AAA-AAA" (1978) by Marina Abramović and Ulay, and its
+video recording by R.T.B.F., are not included in this repository and are not
+licensed by it. All rights in them remain with their respective holders. See
+NOTICE.md.

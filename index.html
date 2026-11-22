@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAA-AAA（重建）</title>
+<style>
+  :root { --ink:#e9e4da; --dim:#8b867c; --faint:#33312e; --u:#7fb2ff; --m:#ff8a7a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; background:#000; color:var(--ink); overflow:hidden;
+    font-family:"Songti SC","Noto Serif SC","Source Han Serif SC",Georgia,serif; }
+  .stage { position:fixed; left:0; right:0; top:96px; bottom:196px; display:flex; }
+  .orig { flex:0 0 30%; display:flex; flex-direction:column; justify-content:center; padding:0 12px 0 32px; }
+  .orig .frame { position:relative; width:100%; aspect-ratio:157/124; border:1px solid var(--faint); background:#050505; display:flex; align-items:center; justify-content:center; }
+  .orig video { width:100%; height:100%; display:none; object-fit:contain; background:#000; }
+  .orig.loaded video { display:block; }
+  .orig .load { text-align:center; font-size:12px; color:var(--dim); line-height:1.9; padding:16px; }
+  .orig.loaded .load { display:none; }
+  .orig .load label { display:inline-block; margin-top:8px; border:1px solid var(--faint); padding:7px 16px; color:var(--ink); cursor:pointer; letter-spacing:.1em; }
+  .orig .load label:hover { border-color:var(--dim); }
+  .orig .cap { margin-top:10px; font-size:11px; color:var(--dim); font-family:Georgia,serif; letter-spacing:.04em; display:flex; justify-content:space-between; }
+  .orig .cap b { font-weight:400; color:var(--ink); font-family:"Songti SC","Noto Serif SC",serif; }
+  .orig.hidden { display:none; }
+  .heads { flex:1; display:flex; min-width:0; }
+  .heads canvas { width:50%; height:100%; display:block; }
+  .seg { display:inline-flex; }
+  .seg button { margin-left:-1px; }
+  .seg button[aria-pressed="true"] { background:rgba(233,228,218,.08); }
+  @media (max-width:900px) { .orig { display:none; } }
+  #hm { transform:scaleX(-1); }
+  #over { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; }
+  .title { position:fixed; top:24px; left:32px; pointer-events:none; }
+  .title h1 { font-family:Georgia,serif; font-weight:400; font-size:22px; letter-spacing:.12em; }
+  .title h1 span { font-family:"Songti SC","Noto Serif SC",serif; font-size:14px; color:var(--dim); letter-spacing:.2em; margin-left:14px; }
+  .title .by { margin-top:6px; font-family:Georgia,serif; font-size:13px; letter-spacing:.16em; color:var(--ink); }
+  .title p { margin-top:8px; font-size:12px; color:var(--dim); line-height:1.7; letter-spacing:.04em; max-width:520px; }
+  .clock { position:fixed; top:26px; right:32px; text-align:right; font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--dim); line-height:1.9; pointer-events:none; }
+  .clock b { color:var(--ink); font-weight:400; font-size:15px; }
+  .names { position:fixed; left:0; right:0; bottom:200px; pointer-events:none; }
+  .names div { position:absolute; bottom:0; font-family:Georgia,serif; font-size:13px; letter-spacing:.14em; }
+  .names .u { left:calc(30% + 6%); color:var(--u); } .names .m { right:8%; color:var(--m); }
+  .caption { position:fixed; left:0; right:0; bottom:228px; text-align:center; font-size:14px; letter-spacing:.14em; opacity:0; transition:opacity 1.4s; pointer-events:none; }
+  .sub { position:fixed; left:30%; right:0; top:104px; text-align:center; font-family:Georgia,serif; font-size:19px; letter-spacing:.03em; color:#4d4a45; pointer-events:none; padding:0 8%; line-height:1.5; }
+  @media (max-width:900px) { .sub { left:0; } }
+  .sub span { transition:color .25s; } .sub span.said { color:var(--m); }
+  .caption small { display:block; margin-top:4px; font-family:Georgia,serif; font-style:italic; font-size:12px; color:var(--dim); letter-spacing:.03em; }
+  .bottom { position:fixed; left:32px; right:32px; bottom:24px; }
+  #tl { width:100%; height:110px; display:block; cursor:pointer; }
+  .legend { display:flex; gap:18px; align-items:center; font-size:11px; color:var(--dim); font-family:Georgia,serif; margin:6px 0 10px; flex-wrap:wrap; }
+  .legend i { display:inline-block; width:14px; height:2px; vertical-align:middle; margin-right:6px; }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  button { font:inherit; font-size:13px; letter-spacing:.1em; color:var(--ink); background:transparent; border:1px solid var(--faint); padding:8px 18px; cursor:pointer; }
+  button:hover { border-color:var(--dim); }
+  button[aria-pressed="true"] { border-color:var(--ink); }
+  button:disabled { opacity:.35; cursor:default; }
+  .credit { margin-left:auto; font-size:11px; color:#5d5952; font-family:Georgia,serif; letter-spacing:.03em; text-align:right; line-height:1.6; }
+  .credit a { color:#7d786f; }
+  .warn { color:#c0876b; font-size:11px; display:none; }
+  .start { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; text-align:center; padding:24px;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,.5), rgba(0,0,0,.92)); }
+  .start h2 { font-family:Georgia,serif; font-weight:400; font-size:38px; letter-spacing:.3em; padding-left:.3em; }
+  .start p { color:var(--dim); font-size:13px; line-height:2; letter-spacing:.06em; max-width:480px; }
+  .start button { padding:12px 34px; font-size:14px; letter-spacing:.3em; }
+  .err { color:#c0876b; font-size:12px; }
+  .about { position:fixed; right:32px; top:80px; width:340px; max-height:calc(100% - 320px); overflow:auto; background:rgba(10,10,10,.92); border:1px solid var(--faint); padding:18px 20px; font-size:12.5px; line-height:1.85; color:#cfc9be; display:none; z-index:4; }
+  .about h3 { font-weight:400; font-size:13px; letter-spacing:.14em; color:var(--ink); margin:10px 0 4px; }
+  .about h3:first-child { margin-top:0; }
+  body.film .title, body.film .clock, body.film .names, body.film .caption, body.film .sub, body.film .bottom, body.film .orig, body.film .warn { display:none !important; }
+  body.film .stage { top:0; bottom:0; }
+  body.framesui .start, body.framesui .warn { display:none !important; }
+  body.framesui .orig .frame { background:#000; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="orig" id="orig">
+    <div class="frame">
+      <video id="vid" playsinline preload="auto"></video>
+      <div class="load">档案影像未载入<br>
+        <label>载入档案影像<input type="file" id="file" accept="video/*" hidden></label><br>
+        <span style="font-size:11px">或将影像拖入此处　影像只在本机播放</span></div>
+    </div>
+    <div class="cap"><span><b>档案</b>　R.T.B.F., Liège, 1978</span><span id="vstate"></span></div>
+  </div>
+  <div class="heads"><canvas id="hu"></canvas><canvas id="hm"></canvas></div>
+</div>
+<canvas id="over"></canvas>
+
+<div class="title">
+  <h1>AAA-AAA <span>（重建）</span></h1>
+  <div class="by">尹紫涔 Yin Zicen　2026</div>
+  <p>依据 1978 年的单声道录音与艺术家的文字说明重建<br><i style="font-family:Georgia,serif">Reconstructed from a mono recording (R.T.B.F., Liège, 1978) and the artists' statement</i></p>
+</div>
+<div class="clock" id="clock"></div>
+<div class="names"><div class="u">ULAY</div><div class="m">MARINA</div></div>
+<div class="caption" id="caption"></div>
+<div class="sub" id="sub"></div>
+
+<div class="bottom">
+  <canvas id="tl" title="点击跳转"></canvas>
+  <div class="legend">
+    <span><i style="background:var(--u)"></i>低声部</span>
+    <span><i style="background:var(--m)"></i>高声部</span>
+    <span><i style="background:#c9c2b4;height:6px;opacity:.35"></i>呼出</span>
+    <span>音高取自档案录音</span>
+  </div>
+  <div class="row">
+    <button id="play" disabled>开始</button>
+    <span class="seg"><button id="sModel" aria-pressed="true">重建</button><button id="sOrig" aria-pressed="false" title="需要先载入档案影像">档案</button></span>
+    <button id="tape" aria-pressed="false" title="让重建的声音经过 1978 年电视录音的频响">经由旧介质</button>
+    <button id="info">说明</button>
+    <span class="warn" id="warn">算力不足，声音可能断续</span>
+    <div class="credit">尹紫涔 Yin Zicen, <i>AAA-AAA（重建）</i>, 2026<br>原作：Marina Abramović &amp; Ulay, <i>AAA-AAA</i>, 1978. R.T.B.F., Liège<br>声音引擎：<a href="https://github.com/jamesondh/chimera-vocal-synth">CHIMERA</a>, Jameson Hodge (MIT License)</div>
+  </div>
+</div>
+
+<div class="about" id="about">
+  <h3>尹紫涔 Yin Zicen</h3>
+  《AAA-AAA（重建）》<br>2026<br>网页，物理声道模型实时合成，机器聆听<br>9分51秒，循环
+  <h3>　</h3>
+  1978年2月，玛丽娜·阿布拉莫维奇与乌雷在列日的电视演播室中相对跪坐，向彼此持续发声，在不断逼近中把声音推向嘶哑。这件作品属于两人“关系作品”（Relation Work）时期，是一场以身体在场和真实消耗为前提的耐力性表演。演出时长约15分钟，今天主要以 R.T.B.F. 拍摄的单声道录像流传。<br><br>
+  本作把这份录像当作唯一的物证。艺术家以机器聆听的方式解析录音，提取出六十七次发声与换气、两条随时间攀升的音高，以及嗓音开始失稳的节点，并整理成一份可以执行的乐谱，交由开源物理声道模型 CHIMERA 再表演。片头由阿布拉莫维奇朗读的作品说明，也被重建为合成朗读，与原录音逐词对齐。屏幕上，两具剖面式的声道相对发声，其中的气流、压力与口型都由模型实时演算。<br><br>
+  作品借用未来考古的视角，设想这件表演在后人类时代被重新读取。那时的观看者，或许已经与技术深度融合，或许以具身智能等非人的形态存在。呼吸与疲惫对它而言不再是共享的经验；要进入这场表演，它必须先为自己搭建一具可以发声的身体。重建在机制层面可以做到相当精确，而原作赖以成立的身体经验，恰恰在这个过程中被悬置了。<br><br>
+  机器聆听在这里也碰到了自身的边界。大约两分钟之后，两人的声音在单声道录音中已无法分离。阿布拉莫维奇与乌雷曾用“That Self”指称两人关系中生成的第三个存在，这段无法拆分的声音，是重建所能捕捉到的、与它最接近的痕迹。
+  <h3>档案</h3>
+  档案影像可在左侧载入，只在本机播放。载入后，它成为整页的时间；“重建 / 档案”只切换声音，两具声道始终按重建运行。
+  <h3>不确定</h3>
+  录音为单声道。约两分钟后，两个声部的归属只能按音高的连续性推断；录音的自动增益也抹平了音量的起伏，用力程度由频谱的亮度间接估计。
+</div>
+
+<div class="start" id="start">
+  <h2>AAA-AAA</h2>
+  <div style="font-family:Georgia,serif;letter-spacing:.2em;color:var(--dim);font-size:13px;margin-top:-8px">尹紫涔 YIN ZICEN　2026</div>
+  <p>请佩戴耳机，并先调低音量。<br>以下所有声音均为重建。</p>
+  <button id="go" disabled>进入</button>
+  <div class="err" id="err"></div>
+</div>
+
+<script src="core.js"></script>
+<script src="driver.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const CAT = {"articKeys":["jaw","tbX","tbY","ttX","ttY","ttCurl","root","lipAp","lipProt","lipWidth","labiodental","velum","larynx","epilarynx","ventricular","lateral","dorsum"],"vowels":{"female":{"a":{"artic":{"jaw":1.637,"tbX":2.191,"tbY":5.739,"ttX":5.592,"ttY":5.523,"ttCurl":0,"root":-0.407,"lipAp":2,"lipProt":0,"lipWidth":1,"larynx":0.641}},"ɑ":{"artic":{"jaw":1.682,"tbX":1.847,"tbY":5.832,"ttX":5.468,"ttY":5.517,"ttCurl":0,"root":-0.665,"lipAp":2,"lipProt":0,"lipWidth":1,"larynx":0.523}},"ə":{"artic":{"jaw":0.818,"tbX":2.996,"tbY":6.841,"ttX":6.186,"ttY":6.614,"ttCurl":0,"root":0.279,"lipAp":0.599,"lipProt":0.351,"lipWidth":0.544,"larynx":0.14}}},"male":{"a":{"artic":{"jaw":1.649,"tbX":2.292,"tbY":5.667,"ttX":5.617,"ttY":5.487,"ttCurl":0,"root":-0.373,"lipAp":2,"lipProt":0,"lipWidth":1,"larynx":0.37}},"ɑ":{"artic":{"jaw":1.685,"tbX":2.022,"tbY":5.692,"ttX":5.519,"ttY":5.466,"ttCurl":0,"root":-0.354,"lipAp":2,"lipProt":0,"lipWidth":1,"larynx":0.217}},"ə":{"artic":{"jaw":0.505,"tbX":2.944,"tbY":6.685,"ttX":6.29,"ttY":6.837,"ttCurl":0,"root":0.421,"lipAp":0.323,"lipProt":0.352,"lipWidth":0.533,"larynx":0.149}}}}};
+let SCORE = null, INTRO = null, speaking = false;
+const WHO = ["U", "M"]; // node 0: Ulay (male, left), node 1: Marina (female, right)
+const VOWELS = [CAT.vowels.male, CAT.vowels.female];
+const nodes = [null, null], tele = [null, null], ctxs = [], tapes = [], outs = [null, null];
+let soundMode = "model";
+let startAt = 0, offset = 0, playing = false, ended = false;
+
+function showErr(t) { $("err").textContent = t; $("warn").textContent = t; $("warn").style.display = "inline"; }
+
+const wasmReady = (async () => {
+  const bytes = await (await fetch("chimera.wasm")).arrayBuffer();
+  return { bytes, module: await WebAssembly.compile(bytes) };
+})();
+let heads = null;
+(async () => {
+  try {
+    SCORE = await (await fetch("score.json")).json();
+    INTRO = await (await fetch("intro_plan.json")).json();
+    const { bytes } = await wasmReady;
+    const { createHeads } = await import("./heads/heads.js");
+    heads = await createHeads(bytes.slice(0), [$("hu"), $("hm")], 48000, [{ female: 0, child: 0 }, { female: 1, child: 0 }]);
+    $("go").disabled = false;
+  } catch (err) { showErr("载入失败：" + err.message); }
+})();
+
+// ---------------------------------------------------------------- audio: one context (one audio thread) per performer
+async function boot() {
+  for (let i = 0; i < 2; i++) ctxs.push(new AudioContext({ latencyHint: "playback" }));
+  const { module } = await wasmReady;
+  await Promise.all(ctxs.map(async (ctx, i) => {
+    await ctx.audioWorklet.addModule("core.js");
+    await ctx.audioWorklet.addModule("worklet.js");
+    const node = new AudioWorkletNode(ctx, "chimera-body", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1], processorOptions: { module, female: i } });
+    node.port.onmessage = (e) => { const m = e.data; if (m.type === "telemetry") tele[i] = m; else if (m.type === "error") showErr("声音引擎停止了：" + m.message); };
+    // the 1978 broadcast channel, fitted from the recording's long-term spectrum (switchable)
+    const hp = new BiquadFilterNode(ctx, { type: "highpass", frequency: 20, Q: 0.7 });
+    const lp = new BiquadFilterNode(ctx, { type: "lowpass", frequency: 20000, Q: 0.7 });
+    const pk = new BiquadFilterNode(ctx, { type: "peaking", frequency: 900, Q: 0.8, gain: 0 });
+    tapes.push({ hp, lp, pk });
+    const pan = new StereoPannerNode(ctx, { pan: i === 0 ? -0.55 : 0.55 });
+    const gain = new GainNode(ctx, { gain: soundMode === "orig" ? 0 : 0.55 }); outs[i] = gain;
+    node.connect(hp).connect(pk).connect(lp).connect(pan).connect(gain).connect(ctx.destination);
+    nodes[i] = node;
+    await ctx.resume();
+  }));
+}
+function setTape(on) {
+  for (const t of tapes) {
+    const now = t.hp.context.currentTime;
+    t.hp.frequency.setTargetAtTime(on ? TAPE.hp : 20, now, 0.05);
+    t.lp.frequency.setTargetAtTime(on ? TAPE.lp : 20000, now, 0.05);
+    t.pk.gain.setTargetAtTime(on ? TAPE.pkGain : 0, now, 0.05);
+    t.pk.frequency.value = TAPE.pkFreq;
+  }
+}
+const TAPE = {"hp": 75, "lp": 4300, "pkFreq": 1050, "pkGain": 6};
+
+// ---------------------------------------------------------------- the clock and the score
+const vid = $("vid");
+let hasVid = false;
+function now() {
+  if (hasVid) return vid.currentTime;
+  return playing ? offset + (ctxs[0].currentTime - startAt) : offset;
+}
+const END = 591.5;
+let introDone = false;
+/** have Marina's engine say the statement from score time t on */
+function startSpeech(t) {
+  const lead = 0.05;
+  const g = INTRO.gestures.filter((x) => x.t1 > t).map((x) => ({ ...x, t0: x.t0 - t - lead, t1: x.t1 - t - lead }));
+  nodes[1].port.postMessage({ schedule: g, lead });
+  speaking = true; introDone = true;
+}
+setInterval(() => {
+  if (!SCORE || !nodes[0] || !nodes[1]) return;
+  const t = now();
+  if (playing && t >= END) { pause(); offset = END; ended = true; }
+  if (speaking && (t >= AAA.INTRO_END || !playing)) { nodes[1].port.postMessage({ stopSpeech: true }); speaking = false; }
+  if (playing && !speaking && INTRO && t < AAA.INTRO_END - 0.4 && !introDone) startSpeech(t);
+  for (let i = 0; i < 2; i++) {
+    if (i === 1 && speaking) continue;
+    const c = AAA.controls(SCORE, WHO[i], Math.min(t, END), VOWELS[i]);
+    nodes[i].port.postMessage({ artic: c.artic, keys: CAT.articKeys, source: c.source, gate: playing ? c.gate : 0 });
+  }
+  hud(t);
+}, 15);
+
+async function play() {
+  if (ended) { offset = 0; ended = false; if (hasVid) vid.currentTime = 0; }
+  introDone = false;
+  for (const c of ctxs) await c.resume();
+  startAt = ctxs[0].currentTime; playing = true;
+  if (hasVid) { try { await vid.play(); } catch (e) { /* the browser may need another click */ } }
+}
+async function pause() { offset = now(); playing = false; introDone = false; if (hasVid) vid.pause(); for (const c of ctxs) await c.suspend(); }
+function seek(t) {
+  offset = Math.max(0, Math.min(END, t)); ended = false; capIdx = -2; introDone = false;
+  if (speaking) { nodes[1]?.port.postMessage({ stopSpeech: true }); speaking = false; }
+  if (hasVid) vid.currentTime = offset;
+  if (playing) startAt = ctxs[0].currentTime;
+}
+
+// ---------------------------------------------------------------- the original film, and the sound switch
+function useVideo(src) {
+  const t = now();
+  vid.src = src; vid.muted = soundMode !== "orig";
+  vid.addEventListener("loadedmetadata", () => {
+    hasVid = true; $("orig").classList.add("loaded");
+    vid.currentTime = Math.min(t, vid.duration || END);
+    if (playing) vid.play().catch(() => {});
+    $("sOrig").title = "";
+  }, { once: true });
+  vid.addEventListener("error", () => { if (!hasVid) $("vstate").textContent = "无法读取此影像"; }, { once: true });
+}
+vid.addEventListener("waiting", () => { $("vstate").textContent = "缓冲中…"; });
+vid.addEventListener("playing", () => { $("vstate").textContent = ""; });
+vid.addEventListener("ended", () => { if (playing) { pause(); ended = true; } });
+$("file").onchange = (e) => { const f = e.target.files[0]; if (f) useVideo(URL.createObjectURL(f)); };
+addEventListener("dragover", (e) => e.preventDefault());
+addEventListener("drop", (e) => { e.preventDefault(); const f = [...e.dataTransfer.files].find((x) => x.type.startsWith("video")); if (f) useVideo(URL.createObjectURL(f)); });
+// run locally with the film saved next to the page as original.mp4, and it loads by itself
+fetch("original.mp4", { method: "HEAD" }).then((r) => { if (r.ok) useVideo("original.mp4"); }).catch(() => {});
+
+function setSound(mode) {
+  if (mode === "orig" && !hasVid) { $("vstate").textContent = "档案影像未载入"; return; }
+  soundMode = mode;
+  $("sModel").setAttribute("aria-pressed", mode === "model"); $("sOrig").setAttribute("aria-pressed", mode === "orig");
+  vid.muted = mode !== "orig";
+  for (const g2 of outs) if (g2) g2.gain.setTargetAtTime(mode === "orig" ? 0 : 0.55, g2.context.currentTime, 0.03);
+  $("tape").disabled = mode === "orig";
+}
+$("sModel").onclick = () => setSound("model");
+$("sOrig").onclick = () => setSound("orig");
+
+$("go").onclick = async () => {
+  $("go").disabled = true; $("go").textContent = "载入声道…";
+  try {
+    await boot(); $("start").style.display = "none"; $("play").disabled = false;
+    if (location.hash === "#record" || location.hash === "#film") { // capture mode: a one-frame flash marks t = 0 for syncing the recorded picture
+      document.body.insertAdjacentHTML("beforeend", '<div id="flash" style="position:fixed;inset:0;background:#fff;z-index:9"></div>');
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await play(); setTimeout(() => { window.__flashOff = performance.now(); $("flash").remove(); }, 120);
+    } else await play();
+  }
+  catch (err) { showErr("无法启动音频：" + err.message); $("go").disabled = false; $("go").textContent = "再试一次"; }
+};
+$("play").onclick = () => (playing ? pause() : play());
+$("tape").onclick = () => { const on = $("tape").getAttribute("aria-pressed") !== "true"; $("tape").setAttribute("aria-pressed", on); setTape(on); };
+$("info").onclick = () => { const a = $("about"); a.style.display = a.style.display === "block" ? "none" : "block"; };
+
+// ---------------------------------------------------------------- captions (what the analysis shows at each point)
+const CAPS = [
+  [0, "朗读，依据文字说明与录音重建。", "A reading, reconstructed from a text and a recording."],
+  [15.5, "两具身体同时吸入，随后各自维持一个音。", "Two bodies inhale together, then each holds a tone."],
+  [62, "每次呼出，音高都略高于上一次。", "Each exhalation begins a little higher than the last."],
+  [118, "两张脸之间的距离持续缩短。", "The distance between the faces keeps closing."],
+  [150, "此后，两个声音在录音中不再可分。", "From here, the two voices cannot be told apart in the recording."],
+  [300, "两者同时升高。记录中找不到协调这一变化的信号。", "Both rise at once. Nothing in the record coordinates the change."],
+  [390, "吸入的间隔缩短到五秒以内。", "The intervals between breaths fall below five seconds."],
+  [470, "每一次发声都从高处开始，随即下落。", "Each sound begins high and falls."],
+  [573.4, "发声停止。记录中没有停止的原因。", "The sound stops. The record gives no reason."],
+];
+let capIdx = -1, capAt = 0;
+function frameCaption(t) {
+  let k = -1; CAPS.forEach((c, i) => { if (t >= c[0]) k = i; });
+  const el = $("caption"); el.style.transition = "none";
+  if (k < 0) { el.style.opacity = 0; return; }
+  const since = t - CAPS[k][0] - 0.7;
+  el.innerHTML = `${CAPS[k][1]}<small>${CAPS[k][2]}</small>`;
+  el.style.opacity = since < 0 ? 0 : since < 1.4 ? since / 1.4 : since < 9 ? 1 : since < 10.4 ? 1 - (since - 9) / 1.4 : 0;
+}
+function hud(t) {
+  const fmt = (x) => `${String(Math.floor(x / 60)).padStart(2, "0")}:${String(Math.floor(x % 60)).padStart(2, "0")}`;
+  const act = SCORE ? AAA.at(SCORE.active, SCORE.fps, t) > 0.5 : false;
+  $("clock").innerHTML = `<b>${fmt(t)}</b> / ${fmt(END)}<br>${t < AAA.INTRO_END ? "朗读" : t > 573.3 ? "—" : act ? "呼出" : "吸入"}`;
+  let k = -1; CAPS.forEach((c, i) => { if (t >= c[0]) k = i; });
+  if (location.hash === "#framesui") k = capIdx; // captions are set by frameCaption
+  if (k !== capIdx && k >= 0) {
+    capIdx = k; const el = $("caption"); el.style.opacity = 0;
+    setTimeout(() => { el.innerHTML = `${CAPS[k][1]}<small>${CAPS[k][2]}</small>`; el.style.opacity = 1; capAt = performance.now(); }, 700);
+  }
+  if (capAt && performance.now() - capAt > 9000 && location.hash !== "#framesui") { $("caption").style.opacity = 0; capAt = 0; }
+  // during the statement, the words she is saying
+  const sub = $("sub");
+  if (INTRO && t < AAA.INTRO_END) {
+    const ph = INTRO.phrases.find((p) => t >= p.t0 - 0.2 && t <= p.t1 + 0.4);
+    sub.innerHTML = ph ? ph.words.map((w) => `<span class="${t >= w.t0 ? "said" : ""}">${w.w}</span>`).join(" ") : "";
+  } else sub.innerHTML = "";
+  $("play").textContent = playing ? "暂停" : ended ? "再一次" : "继续";
+  const load = Math.max(tele[0]?.load || 0, tele[1]?.load || 0);
+  if (load > 0.9) $("warn").style.display = "inline";
+}
+
+// ---------------------------------------------------------------- drawing
+const ov = $("over"), g = ov.getContext("2d"), tl = $("tl"), tg = tl.getContext("2d");
+let W, H, DPR, tlCache = null;
+function resize() {
+  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+  ov.width = W * DPR; ov.height = H * DPR; g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const r = tl.getBoundingClientRect(); tl.width = r.width * DPR; tl.height = r.height * DPR; tg.setTransform(DPR, 0, 0, DPR, 0, 0);
+  heads?.fit(); tlCache = null;
+}
+addEventListener("resize", resize); resize();
+tl.onclick = (e) => { const r = tl.getBoundingClientRect(); seek(((e.clientX - r.left) / r.width) * END); };
+
+function drawTimeline(t) {
+  const w = tl.clientWidth, h = tl.clientHeight;
+  if (!w || !h) return;
+  if (!tlCache && SCORE) {
+    tlCache = document.createElement("canvas"); tlCache.width = w * DPR; tlCache.height = h * DPR;
+    const c = tlCache.getContext("2d"); c.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const n = SCORE.n, X = (i) => (i / SCORE.fps / END) * w, Y = (f) => h - 4 - ((Math.log2(f) - Math.log2(100)) / (Math.log2(900) - Math.log2(100))) * (h - 8);
+    c.fillStyle = "rgba(201,194,180,0.07)";
+    let s0 = -1;
+    for (let i = 0; i <= n; i++) {
+      const on = i < n && SCORE.active[i] > 0.5;
+      if (on && s0 < 0) s0 = i;
+      if (!on && s0 >= 0) { c.fillRect(X(s0), 0, X(i) - X(s0), h); s0 = -1; }
+    }
+    for (const [who, col] of [["U", "127,178,255"], ["M", "255,138,122"]]) {
+      for (let i = 0; i < n; i += 1) {
+        const v = SCORE[who].voiced[i]; if (v < 0.15 || SCORE.active[i] < 0.5) continue;
+        c.fillStyle = `rgba(${col},${0.25 + 0.6 * v})`; c.fillRect(X(i), Y(SCORE[who].f0[i]) - 0.6, 1.2, 1.2);
+      }
+    }
+    c.fillStyle = "rgba(139,134,124,0.7)"; c.font = "10px Georgia, serif";
+    for (const f of [150, 300, 600]) c.fillText(f + "", 2, Y(f) - 2);
+  }
+  tg.clearRect(0, 0, w, h);
+  if (tlCache) tg.drawImage(tlCache, 0, 0, w, h);
+  const x = (t / END) * w;
+  tg.fillStyle = "rgba(233,228,218,0.9)"; tg.fillRect(x - 0.5, 0, 1, h);
+}
+
+let last = performance.now();
+// frames mode: no audio thread; the engines run here, one video frame at a time, for an exact offline film
+const FRAMES_UI = location.hash === "#framesui";
+if (location.hash === "#frames" || FRAMES_UI) {
+  if (!FRAMES_UI) document.body.classList.add("film");
+  else { document.body.classList.add("framesui"); $("orig").classList.add("loaded"); }
+  let bodies = null, at = -1, x = null;
+  const FS = 48000;
+  function fullTele(b) {
+    const mem = b.x.memory.buffer, p = b.x.engine_telemetry(b.h);
+    const head = new Float64Array(mem, p, 16);
+    const [phLen, orLen, velumPort, f0, voicing, pLung, outRms, noiseLevel, noiseNode, gate, clock, nArtic, nPh, nOr, nScope] = head;
+    const all = new Float64Array(mem, p, 16 + nArtic + 3 * (nPh + nOr) + 2 * nScope);
+    let o = 16; const take = (n) => Float32Array.from(all.subarray(o, (o += n)));
+    const artic = take(nArtic), phAreas = take(nPh), orAreas = take(nOr), pressureRms = take(nPh + nOr), flow = take(nPh + nOr), glottalArea = take(nScope), glottalFlow = take(nScope);
+    return { type: "telemetry", t: { artic, phAreas, orAreas, phLen, orLen, pressureRms, flow, velumPort, glottalArea, glottalFlow, f0, voicing, pLung, outRms, noiseLevel, noiseNode, gate, clock, active: [] }, load: 0, body: { female: b.x.engine_body_female(b.h), child: 0 }, nPh, nOr, beatStep: -1 };
+  }
+  function step(t) {
+    const n = Math.round(t * FS), cur = Math.round(at * FS);
+    for (let i = cur; i < n; i += 128) {
+      const tt = i / FS;
+      if (i % 512 === 0) {
+        for (let k = 0; k < 2; k++) {
+          if (k === 1 && bodies.speaking) { if (tt >= AAA.INTRO_END) { bodies[1].stopSpeech(); bodies.speaking = false; } else continue; }
+          const c = AAA.controls(SCORE, WHO[k], tt, VOWELS[k]);
+          bodies[k].artic(c.artic, CAT.articKeys); bodies[k].source(c.source); bodies[k].gate(c.gate);
+        }
+      }
+      bodies[0].render(128); bodies[1].render(128);
+    }
+    at = n / FS;
+  }
+  window.renderFrame = async (t) => {
+    if (!x) { const { module } = await wasmReady; x = new WebAssembly.Instance(module, {}).exports; }
+    if (!bodies || t < at || t - at > 0.5) {
+      bodies = [new OneBreath.Body(x, FS, 0), new OneBreath.Body(x, FS, 1)];
+      const start = Math.max(0, t - 1.2);
+      at = start; bodies.speaking = false;
+      if (start < AAA.INTRO_END) {
+        bodies[1].schedule(INTRO.gestures.filter((g) => g.t1 > start).map((g) => ({ ...g, t0: g.t0 - start, t1: g.t1 - start })), 0, true);
+        bodies.speaking = true;
+      }
+    }
+    step(t);
+    tele[0] = fullTele(bodies[0]); tele[1] = fullTele(bodies[1]);
+    if (FRAMES_UI) {
+      playing = true; offset = t; $("play").disabled = false;
+      hud(t); frameCaption(t);
+      drawScene(t, 0.04, 0.04);
+      return t;
+    }
+    // narrow (vertical) frames: pull both heads in so neither is cut by the frame
+    const s = AAA.staging(t);
+    heads.stage(0.08 + s.gap * 0.3, 0.58 * Math.sqrt(s.zoom), 0.5);
+    heads.draw(tele, 0.04, 0.04);
+    return t;
+  };
+}
+// film mode: only the two vocal tracts, with a frame log for syncing a screen recording
+if (location.hash === "#film") { document.body.classList.add("film"); window.__log = []; }
+function frame(nowMs) {
+  if (location.hash.startsWith("#frames")) return;
+  if (window.__log && ctxs.length) window.__log.push([nowMs, now()]);
+  const dt = Math.min(0.05, (nowMs - last) / 1000), elapsed = Math.min(0.5, (nowMs - last) / 1000); last = nowMs;
+  drawScene(ctxs.length ? now() : 0, dt, elapsed);
+  requestAnimationFrame(frame);
+}
+function drawScene(t, dt, elapsed) {
+  g.clearRect(0, 0, W, H);
+  if (heads) {
+    const s = AAA.staging(t);
+    heads.stage(s.gap, s.zoom);
+    heads.draw(tele, dt, elapsed);
+    // the air between the two open mouths, lit by how hard both are pushing
+    const [lu, lm] = heads.lips();
+    const ru = $("hu").getBoundingClientRect(), rm = $("hm").getBoundingClientRect();
+    const A = { x: ru.left + lu.x, y: ru.top + lu.y }, B = { x: rm.left + (lm.w - lm.x), y: rm.top + lm.y };
+    const lv = Math.min(1, ((tele[0]?.t.outRms || 0) + (tele[1]?.t.outRms || 0)) * 2.2);
+    if (lv > 0.02 && B.x > A.x) {
+      const grd = g.createLinearGradient(A.x, 0, B.x, 0);
+      grd.addColorStop(0, `rgba(127,178,255,${0.35 * lv})`); grd.addColorStop(0.5, `rgba(233,228,218,${0.12 * lv})`); grd.addColorStop(1, `rgba(255,138,122,${0.35 * lv})`);
+      const hgt = 10 + 26 * lv;
+      g.fillStyle = grd; g.beginPath();
+      g.moveTo(A.x, A.y - 3); g.quadraticCurveTo((A.x + B.x) / 2, (A.y + B.y) / 2 - hgt, B.x, B.y - 3);
+      g.lineTo(B.x, B.y + 3); g.quadraticCurveTo((A.x + B.x) / 2, (A.y + B.y) / 2 + hgt, A.x, A.y + 3); g.fill();
+    }
+  }
+  drawTimeline(t);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
