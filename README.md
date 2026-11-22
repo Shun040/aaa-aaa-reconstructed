@@ -19,7 +19,7 @@ The first work in an ongoing series on future archaeology.
 
 本作把这份录像当作唯一的物证。艺术家以机器聆听的方式解析录音，提取出六十七次发声与换气、两条随时间攀升的音高，以及嗓音开始失稳的节点，并整理成一份可以执行的乐谱，交由开源物理声道模型 CHIMERA 再表演。片头由阿布拉莫维奇朗读的作品说明，也被重建为合成朗读，与原录音逐词对齐。屏幕上，两具剖面式的声道相对发声，其中的气流、压力与口型都由模型实时演算。
 
-作品借用未来考古的视角，设想这件表演在后人类时代被重新读取。那时的观看者，或许已经与技术深度融合，或许以具身智能等非人的形态存在。呼吸与疲惫对它而言不再是共享的经验；要进入这场表演，它必须先为自己搭建一具可以发声的身体。重建在机制层面可以做到相当精确，而原作赖以成立的身体经验，恰恰在这个过程中被悬置了。
+作品借用未来考古的视角，设想这件表演被一个未必是人的观看者重新读取。它可能是一种从信息出发理解世界的智能；即便拥有身体，那也是由传感器与执行器构成的身体，不需要呼吸，也不会疲惫。海尔斯（N. Katherine Hayles）在《我们何以成为后人类》中描述过这样一种立场：信息被看作比承载它的身体更为根本。站在这个后人类的观看位置上，一声嘶喊首先是一组可以测量的数据；要理解它，观看者必须先为自己搭建一具可以发声的身体。重建在机制层面可以做到相当精确，而原作赖以成立的身体经验，恰恰在这个过程中被悬置了。
 
 机器聆听在这里也碰到了自身的边界。大约两分钟之后，两人的声音在单声道录音中已无法分离。阿布拉莫维奇与乌雷曾用“That Self”指称两人关系中生成的第三个存在，这段无法拆分的声音，是重建所能捕捉到的、与它最接近的痕迹。
 
@@ -29,7 +29,7 @@ In February 1978, Marina Abramović and Ulay knelt facing each other in a televi
 
 This work treats that recording as its sole piece of evidence. Through machine listening, the artist extracted sixty-seven phrases and breaths, two pitch lines that climb over time, and the points at which the voices begin to fail, and organised them into an executable score for re-performance by CHIMERA, an open-source physical model of the human vocal tract. Abramović's spoken introduction is likewise reconstructed as a synthetic reading, aligned word by word to the original. On screen, two cross-sectional vocal tracts face each other; their airflow, pressure and mouth shapes are computed in real time.
 
-Taking the position of a future archaeology, the work imagines the performance being read again in a posthuman era. Its viewer may by then be deeply entangled with technology, or exist as an embodied intelligence of a non-human kind. For such a viewer, breath and fatigue are no longer shared experience; to enter the performance, it must first build itself a body that can produce sound. The reconstruction can be precise at the level of mechanism, while the bodily experience on which the original depends is held in suspension.
+Taking the position of a future archaeology, the work imagines the performance being read again by a viewer that need not be human. It might be an intelligence that understands the world through information; if it has a body at all, that body is made of sensors and actuators, and neither breathes nor tires. In *How We Became Posthuman*, N. Katherine Hayles describes a view in which information is treated as more fundamental than the body that carries it. From such a posthuman position, a scream is first a set of measurable data; to understand it, the viewer must first build itself a body that can produce sound. The reconstruction can be precise at the level of mechanism, while the bodily experience on which the original depends is held in suspension.
 
 Machine listening also meets its own limit here. After about two minutes, the two voices can no longer be separated in the mono recording. Abramović and Ulay used the term "That Self" for a third entity generated within their relationship; this inseparable sound is the closest trace of it the reconstruction can register.
 
